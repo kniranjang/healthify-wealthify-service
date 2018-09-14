@@ -1,51 +1,35 @@
 var express = require('express');
 var httpStatusCodes = require('http-status-codes');
 var router = express.Router();
-var fs = require('fs');
-var uuid = require('uuid');
+var DataClient = require('../clients/file_Client');
+var dataClient = new DataClient();
+
 
 /* GET users listing. */
 router
     .get('/', function (req, res) {
-        var arr = JSON.parse(fs.readFileSync('./files/users.json'));
-        arr = arr.filter(element =>
-            !element.isDeleted
-        );
+        var arr = dataClient.getAllUsers();
         res.status(httpStatusCodes.OK)
             .end(JSON.stringify(arr));
 
     })
+    .get('/:id', function (req, res) {
+        var user = dataClient.getUserById(req.params.id);
+        res.status(httpStatusCodes.OK).end(JSON.stringify(user));
+    })
     .post('/', function (req, res) {
-        var arr = JSON.parse(fs.readFileSync('./files/users.json'));
         var user = req.body;
-        user.id = arr.length;
-        arr.push(user);
-        fs.writeFileSync('./files/users.json', JSON.stringify(arr));
+        user = dataClient.postUser(user);
         res.status(httpStatusCodes.OK).end(JSON.stringify(user));
     })
     .delete('/:id', function (req, res) {
-        var arr = JSON.parse(fs.readFileSync('./files/users.json'));
-        var userId = parseInt(req.params.id, 10);
-        var index = arr.findIndex(element =>
-            element.id === userId
-        );
-        console.log(index);
-        arr[index].isDeleted = true;
-        fs.writeFileSync('./files/users.json', JSON.stringify(arr));
+        dataClient.deleteUser(req.params.id);
         res.status(httpStatusCodes.OK).end("Deleted");
     })
     .put('/:id', function (req, res) {
         var user = req.body;        
-        var userId = parseInt(req.params.id, 10);
-        var arr = JSON.parse(fs.readFileSync('./files/users.json'));   
-        user.id = userId;             
-        var index = arr.findIndex(element =>
-            element.id === userId
-        );
-       arr[index] = user;
-        fs.writeFileSync('./files/users.json', JSON.stringify(arr));
+        dataClient.putUser(user, id);
         res.status(httpStatusCodes.OK).end("Updated");
-    
     });
 
 module.exports = router;

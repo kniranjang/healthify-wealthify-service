@@ -1,12 +1,13 @@
 var fs = require('fs');
 
-class fileClient {   
-    constructor(){
-        
+class fileClient {
+    constructor() {
+
     }
 
     getAllUsers() {
         var arr = JSON.parse(fs.readFileSync('./files/users.json'));
+        if (typeof arr === 'undefined') return undefined;
         arr = arr.filter(element =>
             !element.isDeleted
         );
@@ -15,7 +16,9 @@ class fileClient {
 
     getUserById(id) {
         var userId = parseInt(id, 10);
+        if (isNaN(userId)) return undefined;
         var arr = getAllUsers();
+        if(typeof arr === 'undefined') return undefined;
         return arr.find(element => element.id === userId);
     }
 

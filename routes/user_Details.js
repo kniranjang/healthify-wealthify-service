@@ -46,7 +46,6 @@ router
     })
     .post('/', function (req, res) {
         var user = req.body;
-        var secret = process.env.SECRET;
         if (!validator.IsValidUser(user)[0]) {
             res.status(httpStatusCodes.BAD_REQUEST).end(validator.IsValidUser(user)[1]);
         } else {

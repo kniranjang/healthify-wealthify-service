@@ -1,4 +1,7 @@
 var fs = require('fs');
+var uuid = require('uuid');
+var bcryptjs = require('bcryptjs');
+var salt = bcryptjs.genSaltSync(15);
 
 class fileClient {
     constructor() {
@@ -16,22 +19,27 @@ class fileClient {
 
     getUserById(id) {
         var arr = this.getAllUsers();
-        if (typeof arr === 'undefined') return undefined;
-        return arr.find(element => element.id === id);
+        if (typeof arr === 'undefined' || arr.length <= 0) return undefined;
+        return arr.find(element => element.id === id && !element.isDeleted);
     }
 
     postUser(user) {
         var arr = this.getAllUsers();
-        if (typeof arr === 'undefined') return undefined;
-        user.id = arr.length;
-        arr.push(user);
+        if (typeof arr === 'undefined') arr = [];
+        var item = arr.find(element => element.email === user.email);
+        if (typeof item !== 'undefined') return undefined;
+        var dbUser = user;
+        dbUser.id = uuid();
+        dbUser.password = bcryptjs.hashSync(user.password, salt);
+        arr.push(dbUser);
         fs.writeFileSync('./files/users.json', JSON.stringify(arr));
+        delete user.password;
         return user;
     }
 
     deleteUser(id) {
         var arr = this.getAllUsers();
-
+        if (typeof arr === 'undefined' || arr.length <= 0) return false;
         var index = arr.findIndex(element =>
             element.id === id
         );
@@ -43,14 +51,22 @@ class fileClient {
 
     putUser(user, id) {
         var arr = this.getAllUsers();
-        if (typeof arr === 'undefined') return undefined;
-        user.id = userId;
+        if (typeof arr === 'undefined' || arr.length <= 0) return undefined;
+        var dbUser = user;
+        dbUser.id = id;
+
         var index = arr.findIndex(element =>
             element.id === id
         );
-        if (index == -1) return undefined;
-        arr[index] = user;
+        if (index === -1) return undefined;
+        if (user.hasOwnProperty("password")) {
+            dbUser.password = bcryptjs.hashSync(user.password, salt);
+        } else {
+            dbUser.password = arr[index].password;
+        }
+        arr[index] = dbUser;
         fs.writeFileSync('./files/users.json', JSON.stringify(arr));
+        delete user.password;
         return user;
     }
 }

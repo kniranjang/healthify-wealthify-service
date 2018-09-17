@@ -69,6 +69,21 @@ class fileClient {
         delete user.password;
         return user;
     }
+
+    getAllHospitals(state) {
+        var arr = JSON.parse(fs.readFileSync('./files/hospitals.json'));
+        if (typeof arr === 'undefined' || arr.length <= 0) return undefined;
+        if (typeof state !== 'undefined' && state !== '') arr = arr.filter(element => element.state === state);
+        arr = arr.map(element => ({ id: element.id, name: element.name, latitude: element.latitude, longitude: element.longitude }));
+        return arr;
+    }
+
+    getHospitalById(id) {
+        var arr = JSON.parse(fs.readFileSync('./files/hospitals.json'));
+        if (typeof arr === 'undefined' || arr.length <= 0) return undefined;
+        var hospital = arr.find(element => element.id === id);
+        return hospital;
+    }
 }
 
 module.exports = fileClient;

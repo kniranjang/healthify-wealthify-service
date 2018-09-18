@@ -1,5 +1,6 @@
 # healthify-wealthify-service
 
 ## to run service
-npm install
-npm start
+
+### npm install
+### npm start

@@ -3,65 +3,135 @@ var httpStatusCodes = require('http-status-codes');
 var router = express.Router();
 var DataClient = require('../clients/file_Client');
 var dataClient = new DataClient();
-var validator = require('../lib/validator');
+var Validator = require('../lib/validator');
+var validator = new Validator();
+var jwt = require('jsonwebtoken');
+var fs = require('fs');
+var persistence = require('./persistence');
 
 
 /* GET users listing. */
 router
     .get('/', function (req, res) {
-        var arr = dataClient.getAllUsers();
-        if (typeof arr !== 'undefined' && arr.length > 0) {
-            res.status(httpStatusCodes.OK)
-                .end(JSON.stringify(arr));
-        }
-        res.status(httpStatusCodes.NOT_FOUND)
-            .end("");
+        persistence.queryCollection()
+            .then((arr) => {
+                if (typeof arr !== 'undefined' && arr.length > 0) {
+                    console.log("TEst3");
+                    res.status(httpStatusCodes.OK)
+                        .end(JSON.stringify(arr));
+                } else
+                    res.status(httpStatusCodes.NOT_FOUND)
+                        .end("");
+            });
+        //var arr = dataClient.getAllUsers();
+
     })
+
+
+    // .get('/', function (req, res) {
+    //     persistence.queryCollection()
+    //         .then((arr) => {
+    //             console.log("test3");
+    //             //if (typeof arr !== 'undefined' && arr.length > 0) {
+    //             console.log('test4');
+    //             res.status(httpStatusCodes.OK)
+    //                 .end(JSON.stringify(arr));
+    //             //s }
+    //         });
+    // })
+
+
     .get('/:id', function (req, res) {
-        var userId = parseInt(req.params.id, 10);
-        if (isNaN(userId)) {
-            res.status(httpStatusCodes.BAD_REQUEST).end("Id should be an integer");
+        var token = req.headers.authorization;
+        var secret = process.env.SECRET;
+        try {
+
+
+            if (jwt.verify(token, secret) === req.params.id) {
+                {
+                    var user = dataClient.getUserById(req.params.id);
+                    if (typeof user !== 'undefined')
+                        res.status(httpStatusCodes.OK).end(JSON.stringify(user));
+                    else
+                        res.status(httpStatusCodes.NOT_FOUND).end("");
+                }
+            } else {
+                res.status(httpStatusCodes.UNAUTHORIZED).end("Unauthorized");
+            }
         }
-        var user = dataClient.getUserById(userId);
-        if (typeof user !== 'undefined')
-            res.status(httpStatusCodes.OK).end(JSON.stringify(user));
-        res.status(httpStatusCodes.NOT_FOUND).end("");
+        catch (err) {
+            res.status(httpStatusCodes.UNAUTHORIZED).end(err);
+        }
     })
+
     .post('/', function (req, res) {
         var user = req.body;
         if (!validator.IsValidUser(user)[0]) {
             res.status(httpStatusCodes.BAD_REQUEST).end(validator.IsValidUser(user)[1]);
+        } else {
+            //user = dataClient.postUser(user);
+            persistence.createUser(user)
+                .then((arr) => {
+                    if (typeof arr === 'undefined') {
+                        res.status(httpStatusCodes.CONFLICT).end('Email already registered.');
+                    } else {
+                        res.status(httpStatusCodes.OK).end(JSON.stringify(arr));
+                    }
+                });
+
+
         }
-        user = dataClient.postUser(user);
-        if (typeof user === 'undefined') {
-            res.status(httpStatusCodes.INTERNAL_SERVER_ERROR).end("Failed to post user");
-        }
-        res.status(httpStatusCodes.OK).end(JSON.stringify(user));
+
     })
+
     .delete('/:id', function (req, res) {
-        var userId = parseInt(req.params.id, 10);
-        if (isNaN(userId)) {
-            res.status(httpStatusCodes.BAD_REQUEST).end("Id should be an integer");
+        var token = req.headers.authorization;
+        var secret = process.env.SECRET;
+        console.log("test1");
+        try {
+           // if (jwt.verify(token, secret) === req.params.id) {
+
+                //var result = dataClient.deleteUser(req.params.id);
+
+                console.log(req.params.id);
+                persistence.deleteDocument(req.params.id)
+                    .then((arr) => {
+                        if (arr)
+                            res.status(httpStatusCodes.OK).end("Deleted");
+                        else
+                            res.status(httpStatusCodes.NOT_FOUND).end("Not found");
+                    });
+            // } else {
+            //     res.status(httpStatusCodes.UNAUTHORIZED).end("Unauthorized");
+            // }
+        } catch (err) {
+            res.status(httpStatusCodes.UNAUTHORIZED).end("unauthorized");
         }
-        var result = dataClient.deleteUser(userId);
-        if (result)
-            res.status(httpStatusCodes.OK).end("Deleted");
-        res.status(httpStatusCodes.NOT_FOUND).end("Not found");
     })
+
+
+
     .put('/:id', function (req, res) {
-        var userId = parseInt(req.params.id, 10);
-        if (isNaN(userId)) {
-            res.status(httpStatusCodes.BAD_REQUEST).end("Id should be an integer");
+        var token = req.headers.authorization;
+        var secret = process.env.SECRET;
+        try {
+            if (jwt.verify(token, secret) === req.params.id) {
+                var user = req.body;
+                if (!validator.IsValidUser(user)[0]) {
+                    res.status(httpStatusCodes.BAD_REQUEST).end(validator.IsValidUser(user)[1]);
+                } else {
+                    user = dataClient.putUser(user, req.params.id);
+                    if (typeof user === 'undefined') {
+                        res.status(httpStatusCodes.NOT_FOUND).end("User not found.")
+                    } else
+                        res.status(httpStatusCodes.OK).end("Updated");
+                }
+            } else {
+                res.status(httpStatusCodes.UNAUTHORIZED).end("Unauthorized");
+            }
+        } catch (err) {
+            res.status(httpStatusCodes.UNAUTHORIZED).end(JSON.stringify(err));
         }
-        var user = req.body;
-        if (!validator.IsValidUser(user)[0]) {
-            res.status(httpStatusCodes.BAD_REQUEST).end(validator.IsValidUser(user)[1]);
-        }
-        user = dataClient.putUser(user, userId);
-        if(typeof user === 'undefined'){
-            res.status(httpStatusCodes.INTERNAL_SERVER_ERROR).end("Failed to put user.")
-        }
-        res.status(httpStatusCodes.OK).end("Updated");
     });
 
 module.exports = router;

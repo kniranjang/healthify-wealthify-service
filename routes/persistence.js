@@ -9,6 +9,8 @@ var client = new documentClient(config.endpoint, { "masterKey": config.primaryKe
 var HttpStatusCodes = { NOTFOUND: 404 };
 var databaseUrl = `dbs/${config.database.id}`;
 var collectionUrl = `${databaseUrl}/colls/${config.collection.id}`;
+var collectionUrl2 = `${databaseUrl}/colls/Hospital`;
+
 
 /**
  * Get the database by ID, or create if it doesn't exist.
@@ -64,33 +66,35 @@ var collectionUrl = `${databaseUrl}/colls/${config.collection.id}`;
 //  * @param {function} callback - The callback function on completion
 //  */
 function createUser(document) {
-    console.log(document.id);
-    let documentUrl = `${collectionUrl}/docs/56`;
-    //console.log(`Getting document:\n${document.id}\n`);
-
     return new Promise((resolve, reject) => {
-        client.readDocument(documentUrl, (err, result) => {
+        client.queryDocuments(
+            collectionUrl,
+            'SELECT * FROM HealthyWealthyCollection r where r.email = "' + document.email + '"'
+        ).toArray((err, results) => {
+            // var user = lodash.find(results, { 'email': email });
             if (err) {
-
-                if (err.code == HttpStatusCodes.NOTFOUND) {
-                    console.log("test11");
-                    client.createDocument(collectionUrl, document, (err, created) => {
+                reject(err);
+                console.log('Error');
+            }
+            else{
+            if(results.length > 0){
+                resolve(true);            
+            }
+            else{
+                client.createDocument(collectionUrl, document, (err, created) => {
                         if (err) reject(err)
                         else {
                             resolve(created);
                             console.log("test12");
+                            //res.status(httpStatusCodes.OK).end(JSON.stringify(arr));
                         }
                     });
-                } else {
-                    reject(err);
-                }
-            } else {
-                resolve(result);
             }
-        });
+            }                                                       
     });
-    return created;
-};
+    //return created;
+});
+}
 
 /**
  * Query the collection using SQL
@@ -102,12 +106,17 @@ function queryCollection(email) {
         console.log("test1");
         client.queryDocuments(
             collectionUrl,
-            'SELECT * FROM HealthyWealthyCollection r where r.email = "' + email + '"'  
+            'SELECT * FROM HealthyWealthyCollection r where r.email = "' + email + '"'
         ).toArray((err, results) => {
-             // var user = lodash.find(results, { 'email': email });
-            if (err) {reject(err);
-                console.log('Error');}
-                            else {
+            // var user = lodash.find(results, { 'email': email });
+            if (err) {
+                reject(err);
+                console.log('Error');
+            }
+            else {
+                // if (results[0].isDeleted != 'undefined' && results[0].isDeleted == true) {
+                //     resolve(true);
+                // }
                 console.log("Test2");
                 //var user = lodash.find(results, { 'id': email });
                 // for (var queryResult of results) {
@@ -123,18 +132,91 @@ function queryCollection(email) {
 };
 
 function getDocumentById(id) {
+    console.log('&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&');
     console.log(`Querying collection through index:\n${config.collection.id}`);
     var collection = `${config.collection.id}`;
     return new Promise((resolve, reject) => {
         console.log("test1");
         client.queryDocuments(
             collectionUrl,
-            'SELECT * FROM HealthyWealthyCollection r where r.id = "' + id + '"'  
+            'SELECT * FROM HealthyWealthyCollection r where r.id = "' + id + '"'
         ).toArray((err, results) => {
-             // var user = lodash.find(results, { 'email': email });
-            if (err) {reject(err);
-                console.log('Error');}
-                            else {
+            // var user = lodash.find(results, { 'email': email });
+            if (err) {
+                reject(err);
+                console.log('Error');
+            }
+            else {
+                // if (results[0].isDeleted === true)
+                //     resolve(true);
+                // //console.log("Test2");
+                // //var user = lodash.find(results, { 'id': email });
+                // // for (var queryResult of results) {
+                // else {
+                    let resultString = JSON.stringify(results);
+                    // console.log(`\tQuery returned ${resultString}`);
+                    //}
+                    // console.log();
+                    resolve(resultString);
+                //}
+
+            }
+        });
+    });
+    return resultString;
+};
+
+function getHospitalById(id) {
+    //console.log(`Querying collection through index:\n${config.collection.id}`);
+    //var collection = `${config.collection.id}`;
+    return new Promise((resolve, reject) => {
+        console.log("test1");
+        client.queryDocuments(
+            collectionUrl2,
+            'SELECT * FROM Hospital r where r.id = "' + id + '"'
+        ).toArray((err, results) => {
+            // var user = lodash.find(results, { 'email': email });
+            if (err) {
+                reject(err);
+                console.log('Error');
+            }
+            else {
+                console.log("Test2");
+                //var user = lodash.find(results, { 'id': email });
+                // for (var queryResult of results) {
+                let resultString = JSON.stringify(results);
+                // console.log(`\tQuery returned ${resultString}`);
+                //}
+                // console.log();
+                resolve(resultString);
+            }
+        });
+    });
+    return resultString;
+};
+
+function getAllHospitals(state) {
+    //console.log(`Querying collection through index:\n${config.collection.id}`);
+    //var collection = `${config.collection.id}`;
+    return new Promise((resolve, reject) => {
+        console.log("test1");
+        var query = '';
+        if (typeof state === 'undefined') {
+            query = 'SELECT h["Hospital Name"], h.id, h.longitude, h.latitude FROM Hospital h'
+        }
+        else {
+            query = 'SELECT h["Hospital Name"], h.id, h.longitude, h.latitude FROM Hospital h where h.STATE = "' + state + '"'
+        }
+        client.queryDocuments(
+            collectionUrl2,
+            query
+        ).toArray((err, results) => {
+            // var user = lodash.find(results, { 'email': email });
+            if (err) {
+                reject(err);
+                console.log('Error');
+            }
+            else {
                 console.log("Test2");
                 //var user = lodash.find(results, { 'id': email });
                 // for (var queryResult of results) {
@@ -172,7 +254,7 @@ function getDocumentById(id) {
 //                 resolve(results);
 //             }
 //         });
-    
+
 //     return resultString;
 // };
 
@@ -206,11 +288,12 @@ function replaceUser(document, id) {
         client.replaceDocument(documentUrl, document, (err, result) => {
             if (err) {
                 reject(err);
+                console.log(err);
                 console.log('Got error');
             }
             else {
                 console.log(result);
-                resolve(result);
+                resolve(JSON.stringify(result));
             }
         });
     });
@@ -276,7 +359,9 @@ function replaceUser(document, id) {
 module.exports = {
     queryCollection,
     createUser,
-  //  deleteDocument,
+    //  deleteDocument,
     replaceUser,
     getDocumentById,
+    getAllHospitals,
+    getHospitalById,
 };

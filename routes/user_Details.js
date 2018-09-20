@@ -27,7 +27,7 @@ router
 
     })
 
-     .get('/:id', function (req, res) {
+    .get('/:id', function (req, res) {
         console.log("query br id");
         // var token = req.headers.authorization;
         // var secret = process.env.SECRET;
@@ -36,19 +36,29 @@ router
 
         //     if (jwt.verify(token, secret) === req.params.id) {
         //         {
-                    persistence.getDocumentById(req.params.id)
-                        .then((arr) => {
-                            console.log("success");
-                            //arr = JSON.parse(arr[0]);
-                            if (typeof arr !== 'undefined')
-                                res.status(httpStatusCodes.OK).end(JSON.stringify(arr));
-                            else
-                                res.status(httpStatusCodes.NOT_FOUND).end("Not found");
-                        });
-             //   }
-            // } else {
-            //     res.status(httpStatusCodes.UNAUTHORIZED).end("Unauthorized");
-            // }
+        persistence.getDocumentById(req.params.id)
+            .then((arr) => {
+                console.log("success");
+                if (arr === true) {
+                    res.status(httpStatusCodes.NOT_FOUND).end("Not found");
+                }
+                else {
+                    arr = JSON.parse(arr);
+
+                    //arr = JSON.parse(arr[0]);
+                    if (typeof arr !== 'undefined' && arr.length > 0) {
+                        res.status(httpStatusCodes.OK).end(JSON.stringify(arr));
+                    }
+
+                    else
+                        res.status(httpStatusCodes.NOT_FOUND).end("Not found");
+                }
+
+            });
+        //   }
+        // } else {
+        //     res.status(httpStatusCodes.UNAUTHORIZED).end("Unauthorized");
+        // }
         // }
         // catch (err) {
         //     res.status(httpStatusCodes.UNAUTHORIZED).end(err);
@@ -65,9 +75,11 @@ router
             //user = dataClient.postUser(user);
             persistence.createUser(user)
                 .then((arr) => {
-                    if (typeof arr === 'undefined') {
-                        res.status(httpStatusCodes.CONFLICT).end('Email already registered.');
-                    } else {
+                    //arr = JSON.parse(arr);
+                    if(arr === true){
+                         res.status(httpStatusCodes.CONFLICT).end('Email already registered.');
+                    }
+                     else {
                         res.status(httpStatusCodes.OK).end(JSON.stringify(arr));
                     }
                 });
@@ -78,28 +90,41 @@ router
     })
 
     .delete('/:id', function (req, res) {
-        var token = req.headers.authorization;
-        var secret = process.env.SECRET;
+        // var token = req.headers.authorization;
+        // var secret = process.env.SECRET;
         console.log("test1");
-        try {
-            // if (jwt.verify(token, secret) === req.params.id) {
+        // try {
+        // if (jwt.verify(token, secret) === req.params.id) {
 
-            //var result = dataClient.deleteUser(req.params.id);
+        //var result = dataClient.deleteUser(req.params.id);
 
-            console.log(req.params.id);
-            persistence.deleteDocument(req.params.id)
-                .then((arr) => {
-                    if (arr)
-                        res.status(httpStatusCodes.OK).end("Deleted");
-                    else
-                        res.status(httpStatusCodes.NOT_FOUND).end("Not found");
-                });
-            // } else {
-            //     res.status(httpStatusCodes.UNAUTHORIZED).end("Unauthorized");
-            // }
-        } catch (err) {
-            res.status(httpStatusCodes.UNAUTHORIZED).end("unauthorized");
-        }
+        console.log(req.params.id);
+        persistence.getDocumentById(req.params.id)
+            .then((arr) => {
+                arr = JSON.parse(arr);
+                if (typeof arr != 'undefined' && arr.length > 0) {
+                    arr[0].isDeleted = true;
+                    console.log('**********************', arr[0].isDeleted);
+                    persistence.replaceUser(arr[0], req.params.id)
+                        .then((arr) => {
+
+                            if (typeof arr === 'undefined' || arr.length <= 0) {
+                                res.status(httpStatusCodes.NOT_FOUND).end("User not found.")
+                            } else {
+                                res.status(httpStatusCodes.OK).end(JSON.stringify(arr));
+                            }
+                        });
+                }
+
+                else
+                    res.status(httpStatusCodes.NOT_FOUND).end("Not found");
+            });
+        // } else {
+        //     res.status(httpStatusCodes.UNAUTHORIZED).end("Unauthorized");
+        // }
+        // } catch (err) {
+        //     res.status(httpStatusCodes.UNAUTHORIZED).end("unauthorized");
+        // }
     })
 
 
@@ -118,10 +143,12 @@ router
             //user = dataClient.putUser(user, req.params.id);
             persistence.replaceUser(user, req.params.id)
                 .then((arr) => {
-                    if (typeof arr === 'undefined') {
+                    arr = JSON.parse(arr);
+
+                    if (typeof arr === 'undefined' || arr.length <= 0) {
                         res.status(httpStatusCodes.NOT_FOUND).end("User not found.")
                     } else {
-                        res.status(httpStatusCodes.OK).end("Updated");
+                        res.status(httpStatusCodes.OK).end(JSON.stringify(arr));
                     }
                 });
 

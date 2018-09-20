@@ -1,4 +1,5 @@
 var config = {}
+var config1 = {}
 
 config.endpoint = "https://healthifywealthify.documents.azure.com:443/";
 config.primaryKey = "GSN9KhqLTcQW9CD5DNqZqLrdyBr7v8wesYzNmLOvKCihAMrbEqp7swNjK3f3KGbltip8Shb6EueS4P1HOMhAeQ==";
@@ -9,6 +10,10 @@ config.database = {
 
 config.collection = {
     "id": "HealthyWealthyCollection"
+};
+
+config1.collection = {
+    "id": "Hospital"
 };
 
 config.documents = {

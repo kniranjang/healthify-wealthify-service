@@ -3,23 +3,39 @@ var router = express.Router();
 var DataClient = require('../clients/file_Client');
 var dataClient = new DataClient();
 var httpStatusCodes = require('http-status-codes');
+var persistence = require('./persistence');
 
 router
     .get('/', function (req, res) {
-        var arr = dataClient.getAllHospitals(req.query.state);
-        if (typeof arr === 'undefined' || arr.length <= 0) {
-            res.status(httpStatusCodes.NOT_FOUND).end("");
-        } else {
-            res.status(httpStatusCodes.OK).end(JSON.stringify(arr));
-        }
+
+        persistence.getAllHospitals(req.query.state)
+            .then((arr) => {
+                console.log("success");
+                arr = JSON.parse(arr);
+                if (typeof arr === 'undefined' || arr.length <= 0) {
+                    res.status(httpStatusCodes.NOT_FOUND).end("Not found");
+                } else {
+                    res.status(httpStatusCodes.OK).end(JSON.stringify(arr));
+                }
+            });
+
+        //var arr = dataClient.getAllHospitals(req.query.state);
+
     })
     .get('/:id', function (req, res) {
-        var hospital = dataClient.getHospitalById(req.params.id);
-        if (typeof hospital === 'undefined') {
-            res.status(httpStatusCodes.NOT_FOUND).end("");
-        } else {
-            res.status(httpStatusCodes.OK).end(JSON.stringify(hospital));
-        }
+
+         persistence.getHospitalById(req.params.id)
+            .then((arr) => {
+                console.log("success");
+                arr = JSON.parse(arr);
+                if (typeof arr === 'undefined' || arr.length <= 0) {
+                    res.status(httpStatusCodes.NOT_FOUND).end("Not found");
+                } else {
+                    res.status(httpStatusCodes.OK).end(JSON.stringify(arr[0]));
+                }
+            });
+
+       
     })
 
 module.exports = router;

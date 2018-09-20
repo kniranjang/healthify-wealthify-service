@@ -5,7 +5,10 @@ var DataClient = require('../clients/file_Client');
 var dataClient = new DataClient();
 var httpStatusCodes = require('http-status-codes');
 var jwt = require('jsonwebtoken');
+<<<<<<< HEAD
+=======
 var notifications = require('../clients/notifications.js');
+>>>>>>> e93a233a77a55760eb296687b652a0ecb24f1ae7
 
 /* GET home page. */
 router
@@ -27,6 +30,8 @@ router
         }
       }
     }
+<<<<<<< HEAD
+=======
   })
   .post('/notification', function (req, res) {
     var message = req.body.message;
@@ -35,6 +40,7 @@ router
       res.status(httpStatusCodes.INTERNAL_SERVER_ERROR).end();
     } else
       res.status(httpStatusCodes.OK).end();
+>>>>>>> e93a233a77a55760eb296687b652a0ecb24f1ae7
   });
 
 module.exports = router;

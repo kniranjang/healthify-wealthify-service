@@ -6,7 +6,10 @@
     "start": "node ./bin/www"
   },
   "dependencies": {
+<<<<<<< HEAD
+=======
     "azure-sb": "^0.10.6",
+>>>>>>> e93a233a77a55760eb296687b652a0ecb24f1ae7
     "bcryptjs": "^2.4.3",
     "cookie-parser": "~1.4.3",
     "cron": "^1.4.1",

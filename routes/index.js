@@ -7,7 +7,7 @@ var httpStatusCodes = require('http-status-codes');
 var jwt = require('jsonwebtoken');
 var notifications = require('../clients/notifications.js');
 var persistence = require('./persistence');
-var lodash = require('lodash');
+// var lodash = require('lodash');
 
 /* GET home page. */
 router

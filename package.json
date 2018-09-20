@@ -9,6 +9,7 @@
     "azure-sb": "^0.10.6",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "~1.4.3",
+    "cors": "^2.8.4",
     "cron": "^1.4.1",
     "date-and-time": "^0.6.2",
     "debug": "~2.6.9",

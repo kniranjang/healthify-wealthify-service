@@ -5,6 +5,7 @@ var DataClient = require('../clients/file_Client');
 var dataClient = new DataClient();
 var httpStatusCodes = require('http-status-codes');
 var jwt = require('jsonwebtoken');
+var notifications = require('../clients/notifications.js');
 
 /* GET home page. */
 router
@@ -26,6 +27,14 @@ router
         }
       }
     }
+  })
+  .post('/notification', function (req, res) {
+    var message = req.body.message;
+    var result = notifications.sendAllNotifications(message);
+    if (result === "error") {
+      res.status(httpStatusCodes.INTERNAL_SERVER_ERROR).end();
+    } else
+      res.status(httpStatusCodes.OK).end();
   });
 
 module.exports = router;

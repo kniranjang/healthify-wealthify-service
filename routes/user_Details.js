@@ -8,6 +8,9 @@ var validator = new Validator();
 var jwt = require('jsonwebtoken');
 var fs = require('fs');
 var persistence = require('./persistence');
+var bcryptjs = require('bcryptjs');
+var salt = bcryptjs.genSaltSync(15);
+
 
 
 /* GET users listing. */
@@ -69,6 +72,7 @@ router
 
     .post('/', function (req, res) {
         var user = req.body;
+        user.password = bcryptjs.hashSync(user.password, salt);
         if (!validator.IsValidUser(user)[0]) {
             res.status(httpStatusCodes.BAD_REQUEST).end(validator.IsValidUser(user)[1]);
         } else {

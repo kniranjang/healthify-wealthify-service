@@ -7,6 +7,8 @@ var httpStatusCodes = require('http-status-codes');
 var jwt = require('jsonwebtoken');
 var notifications = require('../clients/notifications.js');
 var persistence = require('./persistence');
+var bcryptjs = require('bcryptjs');
+var salt = bcryptjs.genSaltSync(15);
 // var lodash = require('lodash');
 
 /* GET home page. */
@@ -14,10 +16,10 @@ router
   .post('/login', function (req, res) {
     console.log('Login');
     var email = req.body.email;
-    console.log(email);
+   // console.log(email);
     var password = req.body.password;
     persistence.queryCollection(email).then((arr) => {
-      console.log('*********', arr);
+    //  console.log('*********', arr);
       if (arr === true) {
         res.status(httpStatusCodes.NOT_FOUND).end("No user with that email.");
       }
@@ -34,7 +36,13 @@ router
           if (arr[0].isDeleted == true) {
              res.status(httpStatusCodes.NOT_FOUND).end("No user with that email is deleted.");
           }
-          if (password === arr[0].password) {
+            console.log('&&&&&&&&&&&', arr[0].password);
+            console.log('*******************************88', bcryptjs.hashSync(password));
+             console.log('*******************************88', arr[0].password);
+
+          if (bcrypt.compareSync(password, arr[0].password)) {
+            
+            //bcryptjs.hashSync(user.password, salt)
             res.status(httpStatusCodes.OK).end(JSON.stringify(arr[0]));
           } else {
             res.status(httpStatusCodes.UNAUTHORIZED).end("Invalid password");

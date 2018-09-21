@@ -96,6 +96,41 @@ function createUser(document) {
 });
 }
 
+
+
+function createHospital(document) {
+   // var hospitalName = document.HospitalName;
+    return new Promise((resolve, reject) => {
+        client.queryDocuments(
+            collectionUrl2,
+            'SELECT * FROM Hospital r where r["Hospital Name"] = "' + document.HospitalName + '" OR r["HospitalName"] = "' + document.HospitalName + '"'
+        ).toArray((err, results) => {
+            // var user = lodash.find(results, { 'email': email });
+            if (err) {
+                reject(err);
+                console.log('Error');
+            }
+            else{
+            if(results.length > 0){
+                resolve(true);            
+            }
+            else{
+                client.createDocument(collectionUrl2, document, (err, created) => {
+                        if (err) {reject(err); console.log(err)}
+                        else {
+                            resolve(created);
+                            console.log("test12");
+                            //res.status(httpStatusCodes.OK).end(JSON.stringify(arr));
+                        }
+                    });
+            }
+            }                                                       
+    });
+    //return created;
+});
+}
+
+
 /**
  * Query the collection using SQL
  */
@@ -364,4 +399,5 @@ module.exports = {
     getDocumentById,
     getAllHospitals,
     getHospitalById,
+    createHospital,
 };
